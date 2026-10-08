@@ -1,0 +1,144 @@
+{{define "main"}}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap hero__grid">
+    <div class="hero__copy">
+      <p class="meta-line">LAT {{.Flagship.LatitudeLabel}}&ensp;LON {{.Flagship.LongitudeLabel}}</p>
+      <h1 id="hero-title" class="display">Astrolabes drawn for one latitude, and one&nbsp;owner.</h1>
+      <p class="lede">Atelier Copernic builds planispheric astrolabes and celestial chronometers by hand in Geneva, no more than nine each year.</p>
+      <div class="actions">
+        <a class="button button--primary" href="/commission">Begin a commission</a>
+        <a class="button button--quiet" href="#editions">See current editions</a>
+      </div>
+    </div>
+    <figure class="hero__plate">
+      <div class="plate-frame plate-frame--hero">{{.Hero}}</div>
+      <figcaption class="caption">{{.Flagship.Name}}, tympan for {{.Flagship.LatitudeLabel}}. The rete turns once per sidereal day<span class="motion-note">; here it runs 240 times faster</span>.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="editions" class="editions" aria-labelledby="editions-title">
+  <div class="wrap">
+    <h2 id="editions-title" class="section-title">Current editions</h2>
+    <fieldset class="showcase">
+      <legend class="visually-hidden">Choose an edition to inspect</legend>
+      {{range $i, $e := .Editions}}<input class="visually-hidden showcase__state" type="radio" name="edition" id="edition-{{$e.Slug}}" {{if eq $i 0}}checked{{end}}>{{end}}
+      <div class="showcase__tabs">
+        {{range .Editions}}
+        <label for="edition-{{.Slug}}" class="showcase__tab">
+          <span class="mono">{{.Code}}</span>
+          <span class="showcase__tab-name">{{.Name}}</span>
+        </label>
+        {{end}}
+      </div>
+      <div class="showcase__panels">
+        {{range .Editions}}
+        <article class="edition" aria-labelledby="{{.Slug}}-name">
+          <div class="edition__plate plate-frame">{{.Plate}}</div>
+          <div class="edition__body">
+            <h3 id="{{.Slug}}-name" class="edition__name">{{.Name}}</h3>
+            <p class="edition__epithet">{{.Epithet}}</p>
+            <p class="edition__story">{{.Story}}</p>
+            <dl class="meta-strip">
+              <div><dt>CALIBER</dt><dd>{{.Code}}</dd></div>
+              <div><dt>EDITION</dt><dd>{{.EditionSize}} pieces</dd></div>
+              <div><dt>TIER</dt><dd>{{.Tier.Name}}</dd></div>
+              <div><dt>SITE</dt><dd>{{.Site}}</dd></div>
+            </dl>
+            <dl class="feature-specs">
+              <div class="feature-spec">
+                <dt>Latitude</dt>
+                <dd><span class="feature-spec__value">{{.LatitudeLabel}}</span><span class="feature-spec__note">One tympan, cut for this place only.</span></dd>
+              </div>
+              <div class="feature-spec">
+                <dt>Ecliptic eccentricity</dt>
+                <dd><span class="feature-spec__value">{{printf "%.4f" .Eccentricity}}</span><span class="feature-spec__note">Offset of the zodiac ring, set by the tilt of the Earth.</span></dd>
+              </div>
+              {{with .Sidereal}}
+              <div class="feature-spec">
+                <dt>Sidereal train</dt>
+                <dd><span class="feature-spec__value">{{.Notation}}</span><span class="feature-spec__note">Drift {{drift .DriftSecondsPerDay}} against the stars.</span></dd>
+              </div>
+              {{end}}
+              <div class="feature-spec">
+                <dt>Components</dt>
+                <dd><span class="feature-spec__value">{{thousands .Components}}</span><span class="feature-spec__note">Each finished and assembled by one hand.</span></dd>
+              </div>
+            </dl>
+            <details class="disclosure">
+              <summary>Full specification</summary>
+              <div class="disclosure__body">
+                {{template "specsheet" .Instrument}}
+                {{with .Trains}}{{template "trains" .}}{{end}}
+              </div>
+            </details>
+          </div>
+        </article>
+        {{end}}
+      </div>
+    </fieldset>
+  </div>
+</section>
+
+<section class="method" aria-labelledby="method-title">
+  <div class="wrap method__grid">
+    <h2 id="method-title" class="display display--section">Every line is calculated before it is&nbsp;cut.</h2>
+    <ol class="method__steps" role="list">
+      <li class="method__step">
+        <h3>Survey</h3>
+        <p>We fix the owner's latitude to the arc-minute, usually for the house where the instrument will live.</p>
+        <p class="mono muted">INPUT: φ, λ, ε (J2000)</p>
+      </li>
+      <li class="method__step">
+        <h3>Project</h3>
+        <p>Almucantars and azimuths are projected stereographically, then plotted at twice scale before transfer to the plate.</p>
+        <p class="mono muted">OUTPUT: TYMPAN GEOMETRY</p>
+      </li>
+      <li class="method__step">
+        <h3>Solve</h3>
+        <p>Each train is searched tooth by tooth against the period it keeps. The Meridiana moon disc runs one day out in {{.LunarDrift}}.</p>
+        <p class="mono muted">MAX WHEEL: 144 TEETH</p>
+      </li>
+      <li class="method__step">
+        <h3>Chase</h3>
+        <p>Rete and limb are pierced and hand-chased, then lapped flat to within two microns.</p>
+        <p class="mono muted">TOLERANCE: ±2 μm</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="testimony" aria-label="From the workshop">
+  <figure class="wrap testimony__figure">
+    <blockquote>
+      <p>A tympan is true for one place on Earth. Carry it four hundred kilometres north and the sky no longer fits the plate.</p>
+    </blockquote>
+    <figcaption>Odile Vauthier<span>Master of the workshop</span></figcaption>
+  </figure>
+</section>
+
+<section class="closing" aria-labelledby="ledger-teaser-title">
+  <div class="wrap closing__grid">
+    <div class="closing__ledger">
+      <h2 id="ledger-teaser-title" class="section-title">Lately delivered</h2>
+      <ol class="recent" role="list">
+        {{range .Recent}}
+        <li>
+          <a class="recent__row" href="/ledger/{{.Slug}}">
+            <span class="mono">{{.Ref}}</span>
+            <span class="recent__name">{{.Name}}</span>
+            <span class="mono muted">{{.LatitudeLabel}}</span>
+            <span class="mono muted">{{.Year}}</span>
+          </a>
+        </li>
+        {{end}}
+      </ol>
+      <a class="text-link" href="/ledger">Open the Ephemeris Ledger</a>
+    </div>
+    <div class="closing__invite">
+      <p class="closing__statement">Each commission begins with a latitude. Tell us where the instrument will live.</p>
+      <a class="button button--primary" href="/commission">Begin a commission</a>
+    </div>
+  </div>
+</section>
+{{end}}

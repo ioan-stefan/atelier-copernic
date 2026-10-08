@@ -1,0 +1,16 @@
+# Build output
+/atelier
+/atelier.exe
+*.exe
+*.test
+*.out
+
+# Local tooling
+.claude/
+graphify-out/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

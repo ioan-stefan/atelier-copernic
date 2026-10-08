@@ -1,0 +1,31 @@
+{{define "main"}}
+<div class="wrap received">
+  <div class="received__grid">
+    <div class="received__copy">
+      <p class="meta-line">DOSSIER {{.C.Ref}}</p>
+      <h1 class="display">Your dossier is with the atelier.</h1>
+      <p class="lede">Keep this reference. The master of the workshop will reply within ten working days, by the method you chose.</p>
+      <dl class="meta-strip meta-strip--stacked">
+        <div><dt>TIER</dt><dd>{{.C.Tier.Name}}</dd></div>
+        <div><dt>SKY</dt><dd>{{.C.Hemisphere.Label}}</dd></div>
+        <div><dt>LAT</dt><dd>{{.C.LatitudeLabel}}</dd></div>
+        <div><dt>LODGED</dt><dd>{{.C.Received.Format "2 January 2006"}}</dd></div>
+      </dl>
+      <h2 class="section-title">What happens next</h2>
+      <ol class="next-steps" role="list">
+        <li><span class="next-steps__verb">Reply.</span> Questions about the site, the occasion and any dedication.</li>
+        <li><span class="next-steps__verb">Quote.</span> A written quotation and a drawing of your tympan.</li>
+        <li><span class="next-steps__verb">Begin.</span> Work starts on receipt of a deposit of one third.</li>
+      </ol>
+      <div class="actions">
+        <a class="button button--quiet" href="/ledger">Browse the ledger</a>
+        <a class="text-link" href="/">Return to the Vault</a>
+      </div>
+    </div>
+    <figure class="received__plate">
+      <div class="plate-frame">{{.Plate}}</div>
+      <figcaption class="caption">The sky over {{.C.LatitudeLabel}}, as your plate will hold it.</figcaption>
+    </figure>
+  </div>
+</div>
+{{end}}

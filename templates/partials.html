@@ -1,0 +1,58 @@
+{{/* Shared fragments. Each takes the value noted beside it. */}}
+
+{{/* specsheet: Instrument. Grouped specification clusters. */}}
+{{define "specsheet"}}
+<div class="specsheet">
+  {{range .SpecGroups}}
+  <section class="spec-group">
+    <h4 class="spec-group__title">{{.Title}}</h4>
+    <dl>
+      {{range .Specs}}<div><dt>{{.Label}}</dt><dd>{{.Value}}</dd></div>{{end}}
+    </dl>
+  </section>
+  {{end}}
+</div>
+{{end}}
+
+{{/* trains: []Train. Gear trains with computed error. */}}
+{{define "trains"}}
+<div class="table-scroll" role="region" aria-label="Gear trains" tabindex="0">
+<table class="trains">
+  <caption>Gear trains, solved against the periods they keep</caption>
+  <thead>
+    <tr><th scope="col">Train</th><th scope="col">Teeth</th><th scope="col">Ratio</th><th scope="col">Target</th><th scope="col">Drift</th><th scope="col">One day out in</th></tr>
+  </thead>
+  <tbody>
+    {{range .}}
+    <tr>
+      <th scope="row">{{.Name}}<span class="trains__purpose">{{.Purpose}}</span></th>
+      <td class="mono">{{.Notation}}</td>
+      <td class="mono">{{printf "%.9f" .Ratio}}</td>
+      <td class="mono">{{printf "%.9f" .Target}}</td>
+      <td class="mono">{{drift .DriftSecondsPerDay}}</td>
+      <td class="mono">{{years .YearsPerDayOfError}}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+</div>
+{{end}}
+
+{{/* certificate: LedgerEntry. The certificate document body. */}}
+{{define "certificate"}}
+<div class="certificate-doc">
+  <p class="certificate-doc__kicker">Certificat d'authenticité</p>
+  <p class="certificate-doc__title" id="cert-{{.Slug}}-title">{{.Name}}</p>
+  <dl class="certificate-doc__fields">
+    <div><dt>No.</dt><dd>{{.Certificate.Number}}</dd></div>
+    <div><dt>Reference</dt><dd>{{.Ref}}</dd></div>
+    <div><dt>Caliber</dt><dd>{{.Code}}</dd></div>
+    <div><dt>Latitude</dt><dd>{{.LatitudeLabel}}</dd></div>
+    <div><dt>Alloy</dt><dd>{{.Alloy.Formula}} ({{.AlloyCode}})</dd></div>
+    <div><dt>Tolerance</dt><dd>±{{.ToleranceUM}} μm</dd></div>
+    <div><dt>Issued</dt><dd>{{.Certificate.Issued}}</dd></div>
+  </dl>
+  <p class="certificate-doc__statement">This certifies that the instrument described was made entire in the workshop of Atelier Copernic, Geneva, and verified against its drawing to the tolerance stated.</p>
+  <p class="certificate-doc__sign">{{.Certificate.Assessor}}<span>Assessor</span></p>
+</div>
+{{end}}

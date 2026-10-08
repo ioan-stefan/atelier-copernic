@@ -1,0 +1,250 @@
+{{define "main"}}
+<div class="wrap commission">
+  <header class="page-head">
+    <h1 class="display">Commission dossier</h1>
+    <p class="lede">Four short sections. The atelier answers every dossier personally, within ten working days.</p>
+  </header>
+
+  {{with .ErrorList}}
+  <div class="error-summary" role="alert" aria-labelledby="error-summary-title">
+    <h2 id="error-summary-title" class="error-summary__title">{{if eq (len .) 1}}One detail needs attention{{else}}{{len .}} details need attention{{end}}</h2>
+    <ul role="list">
+      {{range .}}<li><span class="mono">{{.Stage}}</span>{{.Message}}</li>{{end}}
+    </ul>
+  </div>
+  {{end}}
+
+  <form class="dossier" method="post" action="/commission" novalidate>
+    {{range .Stages}}<input class="visually-hidden dossier__state" type="radio" name="stage" id="stage-{{.N}}" value="{{.N}}" {{if eq $.Stage .N}}checked{{end}} aria-describedby="stage-hint">{{end}}
+    <p id="stage-hint" class="visually-hidden">Dossier sections. Use the arrow keys to move between them.</p>
+
+    <ol class="stepper" role="list">
+      {{range .Stages}}
+      <li><label for="stage-{{.N}}" class="stepper__tab{{if .HasError}} stepper__tab--error{{end}}">{{.Name}}{{if .HasError}}<span class="stepper__flag">needs attention</span>{{end}}</label></li>
+      {{end}}
+    </ol>
+
+    <div class="dossier__panels">
+      <fieldset class="dossier__panel" data-stage="1">
+        <legend class="panel-title">The sky</legend>
+        <p class="panel-intro">Which sky, seen from where. The tympan is drawn for this latitude alone.</p>
+
+        <fieldset class="choice-group" data-group="hemisphere"{{if .Errors.Get "hemisphere"}} aria-describedby="hemisphere-error"{{end}}>
+          <legend class="field__legend">Celestial hemisphere</legend>
+          <label class="choice">
+            <input type="radio" name="hemisphere" id="hemisphere-northern" value="northern" {{if eq .Input.Hemisphere "northern"}}checked{{end}} required>
+            <span class="choice__body">
+              <span class="choice__name">Northern</span>
+              <span class="choice__note">Projected from the south celestial pole. Polaris sits near the centre of the rete.</span>
+            </span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="hemisphere" id="hemisphere-southern" value="southern" {{if eq .Input.Hemisphere "southern"}}checked{{end}} required>
+            <span class="choice__body">
+              <span class="choice__name">Southern</span>
+              <span class="choice__note">Projected from the north celestial pole. The rete carries Crux, Canopus and Achernar.</span>
+            </span>
+          </label>
+          {{with .Errors.Get "hemisphere"}}<p class="field__error" id="hemisphere-error">{{.}}</p>{{end}}
+        </fieldset>
+
+        <fieldset class="field-row" aria-describedby="lat-help{{if .Errors.Get "latDeg"}} latDeg-error{{end}}{{if .Errors.Get "latMin"}} latMin-error{{end}}">
+          <legend class="field__legend">Observation latitude</legend>
+          <div class="field field--short">
+            <label for="lat_deg">Degrees</label>
+            <input id="lat_deg" name="lat_deg" type="text" inputmode="numeric" pattern="[0-9]{1,2}" maxlength="2" autocomplete="off" value="{{.Input.LatDeg}}" required{{if .Errors.Get "latDeg"}} aria-invalid="true"{{end}}>
+          </div>
+          <div class="field field--short">
+            <label for="lat_min">Minutes</label>
+            <input id="lat_min" name="lat_min" type="text" inputmode="numeric" pattern="[0-9]{1,2}" maxlength="2" autocomplete="off" value="{{.Input.LatMin}}"{{if .Errors.Get "latMin"}} aria-invalid="true"{{end}}>
+          </div>
+          <p class="field__help" id="lat-help">Where the instrument will live, between 5° and 70°. Geneva is 46° 12'.</p>
+          {{with .Errors.Get "latDeg"}}<p class="field__error" id="latDeg-error">{{.}}</p>{{end}}
+          {{with .Errors.Get "latMin"}}<p class="field__error" id="latMin-error">{{.}}</p>{{end}}
+        </fieldset>
+
+        <div class="field">
+          <label for="site">Place name for the tympan <span class="optional">optional</span></label>
+          <input id="site" name="site" type="text" maxlength="60" autocomplete="off" value="{{.Input.Site}}" aria-describedby="site-help{{if .Errors.Get "site"}} site-error{{end}}"{{if .Errors.Get "site"}} aria-invalid="true"{{end}}>
+          <p class="field__help" id="site-help">Engraved beneath the latitude, for example the name of a house or a town.</p>
+          {{with .Errors.Get "site"}}<p class="field__error" id="site-error">{{.}}</p>{{end}}
+        </div>
+
+        <div class="panel-actions">
+          <label for="stage-2" class="button button--primary">Continue to complication</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="dossier__panel" data-stage="2">
+        <legend class="panel-title">Complication</legend>
+        <p class="panel-intro">How much of the sky the instrument keeps for itself.</p>
+
+        <fieldset class="choice-group choice-group--stack" data-group="tier"{{if .Errors.Get "tier"}} aria-describedby="tier-error"{{end}}>
+          <legend class="field__legend">Complication tier</legend>
+          {{range .Tiers}}
+          <label class="choice">
+            <input type="radio" name="tier" value="{{.ID}}" {{if eq $.Input.Tier .ID}}checked{{end}} required>
+            <span class="choice__body">
+              <span class="choice__name">{{.Name}}</span>
+              <span class="choice__note">{{.Summary}}</span>
+              <span class="choice__meta mono">FROM {{chf .FromCHF}}&ensp;LEAD {{.LeadMonths}} MONTHS</span>
+            </span>
+          </label>
+          {{end}}
+          {{with .Errors.Get "tier"}}<p class="field__error" id="tier-error">{{.}}</p>{{end}}
+        </fieldset>
+
+        <div class="field field--short">
+          <label for="tympans">Additional tympan plates</label>
+          <input id="tympans" name="tympans" type="number" min="0" max="{{.MaxTympans}}" step="1" inputmode="numeric" value="{{or .Input.Tympans "0"}}" aria-describedby="tympans-help{{if .Errors.Get "tympans"}} tympans-error{{end}}"{{if .Errors.Get "tympans"}} aria-invalid="true"{{end}}>
+          <p class="field__help" id="tympans-help">Each extra plate is drawn for another latitude. {{chf .TympanCHF}} each, up to {{.MaxTympans}}.</p>
+          {{with .Errors.Get "tympans"}}<p class="field__error" id="tympans-error">{{.}}</p>{{end}}
+        </div>
+
+        <div class="panel-actions">
+          <label for="stage-1" class="button button--quiet">Back</label>
+          <label for="stage-3" class="button button--primary">Continue to engraving</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="dossier__panel" data-stage="3">
+        <legend class="panel-title">Engraving</legend>
+        <p class="panel-intro">The metal of the plates and the hand that letters them.</p>
+
+        <div class="field">
+          <label for="alloy">Plate alloy</label>
+          <select id="alloy" name="alloy" required aria-describedby="alloy-help{{if .Errors.Get "alloy"}} alloy-error{{end}}"{{if .Errors.Get "alloy"}} aria-invalid="true"{{end}}>
+            <option value="">Select an alloy</option>
+            {{range .Alloys}}<option value="{{.Code}}" {{if eq $.Input.Alloy .Code}}selected{{end}}>{{.Name}}, {{.Formula}} ({{.Code}}){{if .SurchargeCHF}}, plus {{chf .SurchargeCHF}}{{end}}</option>{{end}}
+          </select>
+          <p class="field__help" id="alloy-help">Brass chases most deeply; nickel silver stays pale near the sea.</p>
+          {{with .Errors.Get "alloy"}}<p class="field__error" id="alloy-error">{{.}}</p>{{end}}
+        </div>
+
+        <fieldset class="choice-group" data-group="script"{{if .Errors.Get "script"}} aria-describedby="script-error"{{end}}>
+          <legend class="field__legend">Engraving hand</legend>
+          {{range .Scripts}}
+          <label class="choice choice--compact">
+            <input type="radio" name="script" value="{{.ID}}" {{if eq $.Input.Script .ID}}checked{{end}} required>
+            <span class="choice__body">
+              <span class="choice__name">{{.Name}}</span>
+              <span class="choice__note">{{.Note}}</span>
+            </span>
+          </label>
+          {{end}}
+          {{with .Errors.Get "script"}}<p class="field__error" id="script-error">{{.}}</p>{{end}}
+        </fieldset>
+
+        <div class="field">
+          <label for="dedication">Dedication <span class="optional">optional</span></label>
+          <textarea id="dedication" name="dedication" rows="2" maxlength="120" aria-describedby="dedication-help{{if .Errors.Get "dedication"}} dedication-error{{end}}"{{if .Errors.Get "dedication"}} aria-invalid="true"{{end}}>{{.Input.Dedication}}</textarea>
+          <p class="field__help" id="dedication-help">Engraved on the back of the mater. Up to 120 characters.</p>
+          {{with .Errors.Get "dedication"}}<p class="field__error" id="dedication-error">{{.}}</p>{{end}}
+        </div>
+
+        <div class="panel-actions">
+          <label for="stage-2" class="button button--quiet">Back</label>
+          <label for="stage-4" class="button button--primary">Continue to patron</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="dossier__panel" data-stage="4">
+        <legend class="panel-title">Patron</legend>
+        <p class="panel-intro">Who the atelier should answer, and how.</p>
+
+        <div class="field">
+          <label for="name">Full name</label>
+          <input id="name" name="name" type="text" maxlength="100" autocomplete="name" value="{{.Input.Name}}" required{{if .Errors.Get "name"}} aria-invalid="true" aria-describedby="name-error"{{end}}>
+          {{with .Errors.Get "name"}}<p class="field__error" id="name-error">{{.}}</p>{{end}}
+        </div>
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" maxlength="254" autocomplete="email" spellcheck="false" value="{{.Input.Email}}" required{{if .Errors.Get "email"}} aria-invalid="true" aria-describedby="email-error"{{end}}>
+          {{with .Errors.Get "email"}}<p class="field__error" id="email-error">{{.}}</p>{{end}}
+        </div>
+
+        <div class="field">
+          <label for="country">Country of residence</label>
+          <input id="country" name="country" type="text" maxlength="80" autocomplete="country-name" value="{{.Input.Country}}" required{{if .Errors.Get "country"}} aria-invalid="true" aria-describedby="country-error"{{end}}>
+          {{with .Errors.Get "country"}}<p class="field__error" id="country-error">{{.}}</p>{{end}}
+        </div>
+
+        <fieldset class="choice-group choice-group--inline" data-group="contact"{{if .Errors.Get "contact"}} aria-describedby="contact-error"{{end}}>
+          <legend class="field__legend">Preferred reply</legend>
+          {{range .Contacts}}
+          <label class="choice choice--compact">
+            <input type="radio" name="contact" value="{{.ID}}" {{if eq $.Input.Contact .ID}}checked{{end}} required>
+            <span class="choice__body"><span class="choice__name">{{.Name}}</span></span>
+          </label>
+          {{end}}
+          {{with .Errors.Get "contact"}}<p class="field__error" id="contact-error">{{.}}</p>{{end}}
+        </fieldset>
+
+        <div class="field">
+          <label for="phone">Telephone <span class="optional">required for a telephone reply</span></label>
+          <input id="phone" name="phone" type="tel" maxlength="24" autocomplete="tel" value="{{.Input.Phone}}"{{if .Errors.Get "phone"}} aria-invalid="true" aria-describedby="phone-error"{{end}}>
+          {{with .Errors.Get "phone"}}<p class="field__error" id="phone-error">{{.}}</p>{{end}}
+        </div>
+
+        <div class="field">
+          <label for="notes">Notes for the atelier <span class="optional">optional</span></label>
+          <textarea id="notes" name="notes" rows="5" maxlength="2000" aria-describedby="notes-help{{if .Errors.Get "notes"}} notes-error{{end}}"{{if .Errors.Get "notes"}} aria-invalid="true"{{end}}>{{.Input.Notes}}</textarea>
+          <p class="field__help" id="notes-help">An occasion, a place, a star that matters to you. Up to 2'000 characters.</p>
+          {{with .Errors.Get "notes"}}<p class="field__error" id="notes-error">{{.}}</p>{{end}}
+        </div>
+
+        <div class="field field--check">
+          <input id="discretion" name="discretion" type="checkbox" value="yes" {{if .Input.Discretion}}checked{{end}} required{{if .Errors.Get "discretion"}} aria-invalid="true" aria-describedby="discretion-error"{{end}}>
+          <label for="discretion">I understand that the atelier never publishes patron names, and that my details are used only for this commission.</label>
+          {{with .Errors.Get "discretion"}}<p class="field__error" id="discretion-error">{{.}}</p>{{end}}
+        </div>
+
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
+        <div class="panel-actions">
+          <label for="stage-3" class="button button--quiet">Back</label>
+          <button class="button button--primary" type="submit" name="action" value="review">Review dossier</button>
+        </div>
+      </fieldset>
+    </div>
+
+    <aside class="dossier__summary" aria-label="Dossier summary">
+      <div class="summary__plates">
+        <div class="summary__plate summary__plate--north plate-frame">{{.PreviewNorth}}</div>
+        <div class="summary__plate summary__plate--south plate-frame">{{.PreviewSouth}}</div>
+      </div>
+      <dl class="summary__list">
+        <div>
+          <dt>Hemisphere</dt>
+          <dd data-echo="hemisphere"><span data-empty>Not yet chosen</span><span>Northern</span><span>Southern</span></dd>
+        </div>
+        <div>
+          <dt>Tier</dt>
+          <dd data-echo="tier"><span data-empty>Not yet chosen</span>{{range .Tiers}}<span>{{.Name}}<small class="mono">FROM {{chf .FromCHF}}, {{.LeadMonths}} MONTHS</small></span>{{end}}</dd>
+        </div>
+        <div>
+          <dt>Alloy</dt>
+          <dd data-echo="alloy"><span data-empty>Not yet chosen</span>{{range .Alloys}}<span>{{.Name}}<small class="mono">{{.Formula}}</small></span>{{end}}</dd>
+        </div>
+      </dl>
+      <p class="summary__note muted">Your full estimate is shown when you review the dossier. Nothing is sent until you confirm.</p>
+    </aside>
+  </form>
+
+  <section class="commission__faq" aria-labelledby="faq-title">
+    <h2 id="faq-title" class="section-title">Before you begin</h2>
+    <details class="disclosure">
+      <summary>How the atelier handles your details</summary>
+      <div class="disclosure__body"><p>Dossiers are read only by the master of the workshop and the patron's assigned engraver. Names are never published, and the Ephemeris Ledger records a piece by reference and city alone.</p></div>
+    </details>
+    <details class="disclosure">
+      <summary>What happens after you lodge a dossier</summary>
+      <div class="disclosure__body"><p>The atelier replies within ten working days with questions about the site and a written quotation. Work begins on receipt of a deposit of one third.</p></div>
+    </details>
+    <details class="disclosure">
+      <summary>Can the latitude be changed later?</summary>
+      <div class="disclosure__body"><p>Until the tympan is plotted, yes. Once the plate is cut a new latitude needs a new plate, which is why additional tympans exist.</p></div>
+    </details>
+  </section>
+</div>
+{{end}}

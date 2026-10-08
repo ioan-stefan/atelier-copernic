@@ -1,0 +1,63 @@
+{{define "main"}}
+{{with .Entry}}
+<article class="wrap entry" aria-labelledby="entry-title">
+  <nav class="crumbs mono" aria-label="Breadcrumb">
+    <ol role="list">
+      <li><a href="/ledger">Ephemeris Ledger</a></li>
+      <li><span aria-current="page">{{.Ref}}</span></li>
+    </ol>
+  </nav>
+
+  <header class="entry__head">
+    <div class="entry__plate plate-frame">{{.Plate}}</div>
+    <div class="entry__intro">
+      <h1 id="entry-title" class="display">{{.Name}}</h1>
+      <p class="lede">{{.Summary}}</p>
+      <dl class="meta-strip meta-strip--stacked">
+        <div><dt>REF</dt><dd>{{.Ref}}</dd></div>
+        <div><dt>YEAR</dt><dd>{{.Year}}</dd></div>
+        <div><dt>SITE</dt><dd>{{.Site}}</dd></div>
+        <div><dt>LAT</dt><dd>{{.LatitudeLabel}}</dd></div>
+        <div><dt>LON</dt><dd>{{.LongitudeLabel}}</dd></div>
+        <div><dt>TIER</dt><dd>{{.Tier.Name}}</dd></div>
+        <div><dt>STATUS</dt><dd>{{.Status}}</dd></div>
+      </dl>
+    </div>
+  </header>
+
+  <section class="entry__section" aria-labelledby="caliber-title">
+    <h2 id="caliber-title" class="section-title">Caliber {{.Code}}</h2>
+    <div class="caliber">
+      {{range .SpecGroups}}
+      <section class="caliber__group">
+        <h3 class="caliber__title">{{.Title}}</h3>
+        <dl class="caliber__list">
+          {{range .Specs}}<div><dt>{{.Label}}</dt><dd>{{.Value}}</dd></div>{{end}}
+        </dl>
+      </section>
+      {{end}}
+    </div>
+    {{with .Trains}}{{template "trains" .}}{{else}}<p class="muted entry__note">A Planisphaerium carries no movement. The owner turns the rete by hand to the hour.</p>{{end}}
+  </section>
+
+  <section class="entry__section entry__split" aria-labelledby="provenance-title">
+    <div>
+      <h2 id="provenance-title" class="section-title">Provenance</h2>
+      <ol class="timeline" role="list">
+        {{range .Provenance}}
+        <li class="timeline__item"><span class="mono timeline__year">{{.Year}}</span><p>{{.Event}}</p></li>
+        {{end}}
+      </ol>
+    </div>
+    <section id="certificate" class="certificate certificate--sheet" aria-labelledby="cert-{{.Slug}}-title">
+      {{template "certificate" .}}
+    </section>
+  </section>
+</article>
+{{end}}
+
+<nav class="wrap pager" aria-label="Adjacent references">
+  {{with .Prev}}<a class="pager__link" href="/ledger/{{.Slug}}" rel="prev"><span class="mono muted">Previous {{.Ref}}</span><span>{{.Name}}</span></a>{{else}}<span></span>{{end}}
+  {{with .Next}}<a class="pager__link pager__link--next" href="/ledger/{{.Slug}}" rel="next"><span class="mono muted">Next {{.Ref}}</span><span>{{.Name}}</span></a>{{end}}
+</nav>
+{{end}}

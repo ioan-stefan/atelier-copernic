@@ -1,0 +1,84 @@
+{{define "main"}}
+<div class="wrap review">
+  <header class="page-head">
+    <h1 class="display">Review your dossier</h1>
+    <p class="lede">Nothing has been sent yet. Lodge the dossier when everything below reads as you intend.</p>
+  </header>
+
+  <div class="review__grid">
+    <figure class="review__plate">
+      <div class="plate-frame">{{.Plate}}</div>
+      <figcaption class="caption">Your tympan as projected for {{.C.LatitudeLabel}}. The final drawing is plotted by hand.</figcaption>
+    </figure>
+
+    <div class="review__sheet">
+      {{with .C}}
+      <section class="review__group" aria-labelledby="review-sky">
+        <h2 id="review-sky" class="review__title">Sky</h2>
+        <dl>
+          <div><dt>Hemisphere</dt><dd>{{.Hemisphere.Label}}</dd></div>
+          <div><dt>Latitude</dt><dd class="mono">{{.LatitudeLabel}}</dd></div>
+          {{with .Site}}<div><dt>Place name</dt><dd>{{.}}</dd></div>{{end}}
+        </dl>
+      </section>
+      <section class="review__group" aria-labelledby="review-complication">
+        <h2 id="review-complication" class="review__title">Complication</h2>
+        <dl>
+          <div><dt>Tier</dt><dd>{{.Tier.Name}}</dd></div>
+          <div><dt>Additional plates</dt><dd>{{.Tympans}}</dd></div>
+        </dl>
+      </section>
+      <section class="review__group" aria-labelledby="review-engraving">
+        <h2 id="review-engraving" class="review__title">Engraving</h2>
+        <dl>
+          <div><dt>Alloy</dt><dd>{{.Alloy.Name}}, {{.Alloy.Formula}} ({{.Alloy.Code}})</dd></div>
+          <div><dt>Hand</dt><dd>{{.Script.Name}}</dd></div>
+          <div><dt>Dedication</dt><dd>{{if .Dedication}}{{.Dedication}}{{else}}None{{end}}</dd></div>
+        </dl>
+      </section>
+      <section class="review__group" aria-labelledby="review-patron">
+        <h2 id="review-patron" class="review__title">Patron</h2>
+        <dl>
+          <div><dt>Name</dt><dd>{{.Name}}</dd></div>
+          <div><dt>Email</dt><dd>{{.Email}}</dd></div>
+          <div><dt>Country</dt><dd>{{.Country}}</dd></div>
+          <div><dt>Reply by</dt><dd>{{.Contact.Name}}</dd></div>
+          {{with .Phone}}<div><dt>Telephone</dt><dd>{{.}}</dd></div>{{end}}
+          {{with .Notes}}<div><dt>Notes</dt><dd class="review__notes">{{.}}</dd></div>{{end}}
+        </dl>
+      </section>
+
+      <div class="estimate">
+        <p class="estimate__label">Indicative price</p>
+        <p class="estimate__value">{{chf .EstimateCHF}}</p>
+        <p class="muted">Lead time about {{.Tier.LeadMonths}} months. The written quotation follows the atelier's reply.</p>
+      </div>
+      {{end}}
+
+      <form class="review__actions" method="post" action="/commission">
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
+        {{with .Input}}
+        <input type="hidden" name="hemisphere" value="{{.Hemisphere}}">
+        <input type="hidden" name="lat_deg" value="{{.LatDeg}}">
+        <input type="hidden" name="lat_min" value="{{.LatMin}}">
+        <input type="hidden" name="site" value="{{.Site}}">
+        <input type="hidden" name="tier" value="{{.Tier}}">
+        <input type="hidden" name="tympans" value="{{.Tympans}}">
+        <input type="hidden" name="alloy" value="{{.Alloy}}">
+        <input type="hidden" name="script" value="{{.Script}}">
+        <input type="hidden" name="dedication" value="{{.Dedication}}">
+        <input type="hidden" name="name" value="{{.Name}}">
+        <input type="hidden" name="email" value="{{.Email}}">
+        <input type="hidden" name="country" value="{{.Country}}">
+        <input type="hidden" name="contact" value="{{.Contact}}">
+        <input type="hidden" name="phone" value="{{.Phone}}">
+        <input type="hidden" name="notes" value="{{.Notes}}">
+        {{if .Discretion}}<input type="hidden" name="discretion" value="yes">{{end}}
+        {{end}}
+        <button class="button button--primary" type="submit" name="action" value="confirm">Lodge dossier</button>
+        <button class="button button--quiet" type="submit" name="action" value="amend">Amend</button>
+      </form>
+    </div>
+  </div>
+</div>
+{{end}}

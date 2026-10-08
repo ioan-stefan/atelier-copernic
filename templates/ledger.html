@@ -1,0 +1,103 @@
+{{define "main"}}
+<div class="wrap ledger-page">
+  <header class="page-head">
+    <h1 class="display">The Ephemeris Ledger</h1>
+    <p class="lede">Every instrument the atelier has delivered since 1987, with its caliber, latitude and certificate of provenance.</p>
+  </header>
+
+  <form class="ledger-search" role="search" method="get" action="/ledger" aria-label="Search the ledger">
+    <div class="field field--grow">
+      <label for="ledger-q">Search references</label>
+      <input id="ledger-q" type="search" name="q" value="{{.Query.Q}}" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="ledger-q-help">
+      <p class="field__help" id="ledger-q-help">Name, reference, caliber, city, alloy or assessor.</p>
+    </div>
+    <div class="field">
+      <label for="ledger-hemisphere">Hemisphere</label>
+      <select id="ledger-hemisphere" name="hemisphere">
+        <option value="">Both</option>
+        <option value="northern" {{if eq .Query.Hemisphere "northern"}}selected{{end}}>Northern</option>
+        <option value="southern" {{if eq .Query.Hemisphere "southern"}}selected{{end}}>Southern</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="ledger-tier">Tier</label>
+      <select id="ledger-tier" name="tier">
+        <option value="">All tiers</option>
+        {{range .Tiers}}<option value="{{.ID}}" {{if eq $.Query.Tier .ID}}selected{{end}}>{{.Name}}</option>{{end}}
+      </select>
+    </div>
+    <div class="field">
+      <label for="ledger-sort">Sort by</label>
+      <select id="ledger-sort" name="sort">
+        {{range .Columns}}<option value="{{.Key}}" {{if eq $.Query.Sort .Key}}selected{{end}}>{{.Label}}</option>{{end}}
+      </select>
+    </div>
+    <div class="field">
+      <label for="ledger-dir">Order</label>
+      <select id="ledger-dir" name="dir">
+        <option value="asc" {{if eq .Query.Dir "asc"}}selected{{end}}>Ascending</option>
+        <option value="desc" {{if eq .Query.Dir "desc"}}selected{{end}}>Descending</option>
+      </select>
+    </div>
+    <div class="ledger-search__actions">
+      <button class="button button--primary" type="submit">Search</button>
+      {{if .Query.Filtered}}<a class="text-link" href="/ledger">Clear</a>{{end}}
+    </div>
+  </form>
+
+  <p class="result-count mono" id="result-count">
+    {{len .Entries}} of {{.Total}} references{{if .Query.Q}} matching &ldquo;{{.Query.Q}}&rdquo;{{end}}, by {{.SortLabel}} ({{if eq .Query.Dir "asc"}}ascending{{else}}descending{{end}})
+  </p>
+
+  {{if .Entries}}
+  <div class="ledger-frame">
+    <table class="ledger" role="table" aria-describedby="result-count">
+      <caption class="visually-hidden">Delivered instruments. Column headers sort the table.</caption>
+      <thead role="rowgroup">
+        <tr role="row">
+          {{range .Columns}}
+          <th role="columnheader" scope="col" {{with .Aria}}aria-sort="{{.}}"{{end}}>
+            <a class="sort-link" href="{{.URL}}"><span class="visually-hidden">Sort by </span>{{.Label}}<span class="sort-link__mark" aria-hidden="true">{{.Mark}}</span></a>
+          </th>
+          {{end}}
+          <th role="columnheader" scope="col">Certificate</th>
+        </tr>
+      </thead>
+      <tbody role="rowgroup">
+        {{range .Entries}}
+        <tr role="row">
+          <td role="cell" class="mono ledger__ref" data-label="Reference">{{.Ref}}</td>
+          <th role="rowheader" scope="row" class="ledger__name" data-label="Instrument">
+            <a href="/ledger/{{.Slug}}">{{.Name}}</a>
+            <span class="ledger__site">{{.Site}}</span>
+          </th>
+          <td role="cell" class="mono" data-label="Year">{{.Year}}</td>
+          <td role="cell" class="mono" data-label="Caliber">{{.Code}}</td>
+          <td role="cell" data-label="Tier">{{.Tier.Name}}</td>
+          <td role="cell" class="mono" data-label="Latitude">{{.LatitudeLabel}}</td>
+          <td role="cell" class="mono" data-label="Alloy">{{.AlloyCode}}</td>
+          <td role="cell" data-label="Certificate">
+            <button class="cert-trigger mono" type="button" popovertarget="cert-{{.Slug}}">{{.Certificate.Number}}<span class="visually-hidden">, open certificate for {{.Name}}</span></button>
+            <a class="cert-fallback mono" href="/ledger/{{.Slug}}#certificate">{{.Certificate.Number}}</a>
+            <dialog class="certificate" id="cert-{{.Slug}}" popover aria-labelledby="cert-{{.Slug}}-title">
+              {{template "certificate" .}}
+              <div class="certificate__actions">
+                <a class="text-link" href="/ledger/{{.Slug}}">Caliber breakdown</a>
+                <button class="button button--quiet button--small" type="button" popovertarget="cert-{{.Slug}}" popovertargetaction="hide">Close</button>
+              </div>
+            </dialog>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="empty-state">
+    <p class="empty-state__title">No references match.</p>
+    <p class="muted">Try a city, a caliber such as AC-07, or an alloy code such as CW409J.</p>
+    <a class="button button--quiet" href="/ledger">Show the full ledger</a>
+  </div>
+  {{end}}
+</div>
+{{end}}

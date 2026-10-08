@@ -1,0 +1,11 @@
+{{define "main"}}
+<div class="wrap error-page">
+  <p class="meta-line">STATUS {{.Status}}</p>
+  <h1 class="display">{{.Title}}</h1>
+  <p class="lede">{{.Message}}</p>
+  <div class="actions">
+    <a class="button button--primary" href="/">Return to the Vault</a>
+    <a class="text-link" href="/ledger">Open the Ephemeris Ledger</a>
+  </div>
+</div>
+{{end}}
